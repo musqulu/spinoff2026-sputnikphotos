@@ -848,6 +848,13 @@
     const [uploads, setUploads] = useState(loadUploads);
     const [activeSlotId, setActiveSlotId] = useState(null);
     const [toast, setToast] = useState(null);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+    useEffect(() => {
+      const onResize = () => setIsMobile(window.innerWidth <= 768);
+      window.addEventListener("resize", onResize);
+      return () => window.removeEventListener("resize", onResize);
+    }, []);
 
     const activeSlot = activeSlotId ? SLOTS.find(s => s.id === activeSlotId) : null;
 
@@ -891,10 +898,7 @@
       showToast(DEFAULT_UPLOADS[slot.id] ? "Przywrocono domyslne" : "Usunieto");
     };
 
-    const filledCount = Object.keys(uploads).length;
-    const totalCount = SLOTS.length;
-
-    // SVG viewBox
+    // ----- Desktop viewBox (both rooms side by side) -----
     const padX = 110;
     const padY = 130;
     const minX = Math.min(SALA.x, GALERIA.x) - padX;
@@ -903,6 +907,71 @@
     const maxY = Math.max(SALA.y + SALA.h, GALERIA.y + GALERIA.h) + padY;
     const vbW = maxX - minX;
     const vbH = maxY - minY;
+
+    // ----- Mobile: translate Galeria below Sala for stacked layout -----
+    const mobileGap = 160;
+    const galDx = SALA.x - GALERIA.x;
+    const galDy = SALA.y + SALA.h + mobileGap - GALERIA.y;
+    const mPadX = 110, mPadY = 120;
+    const mW = Math.max(SALA.w, GALERIA.w) + mPadX * 2;
+    const mH = SALA.h + mobileGap + GALERIA.h + mPadY * 2;
+    const mobileVB = `${SALA.x - mPadX} ${SALA.y - mPadY} ${mW} ${mH}`;
+
+    // ----- Sala dimension annotations -----
+    const salaDims = (() => {
+      const botSegs = [77.5, 234.5, 145.5, 206.5, 119];
+      const botKinds = ["wall", "door", "wall", "door", "wall"];
+      const topSegs = [
+        { len: 181, kind: "wall" },
+        { len: 129.5, kind: "opening" },
+        { len: 212, kind: "wall" },
+        { len: 128.5, kind: "opening" },
+        { len: 127.5, kind: "wall" },
+      ];
+      let bc = 0;
+      const bot = botSegs.map((s, i) => {
+        const x1 = SALA.x + bc; bc += s;
+        return <Dim key={`sala-bot-${i}`} x1={x1} y1={SALA.y + SALA.h} x2={x1 + s} y2={SALA.y + SALA.h} label={fmtCm(s)} sub={botKinds[i] === "door" ? "drzwi" : null} side="below" extend={62} />;
+      });
+      let tc = 0;
+      const top = topSegs.map((s, i) => {
+        const x1 = SALA.x + tc; tc += s.len;
+        return <Dim key={`sala-top-${i}`} x1={x1} y1={SALA.y} x2={x1 + s.len} y2={SALA.y} label={fmtCm(s.len)} sub={s.kind === "opening" ? "przejscie" : null} side="above" extend={32} />;
+      });
+      return (
+        <g>
+          <Dim x1={SALA.x} y1={SALA.y} x2={SALA.x + SALA.w} y2={SALA.y} label={`${fmtCm(SALA.w)} cm`} sub={fmtM(SALA.w)} side="above" extend={64} />
+          {bot}
+          {top}
+          <VDim x={SALA.x} y1={SALA.y} y2={SALA.y + SALA.h} label={`${fmtCm(SALA.h)} cm  ·  ${fmtM(SALA.h)}`} side="left" extend={56} />
+        </g>
+      );
+    })();
+
+    // ----- Galeria dimension annotations -----
+    const galeriaDims = (() => {
+      const topSegs = [39, 111, 765.5 - 39 - 111];
+      const topKinds = ["wall", "opening", "wall"];
+      const botSegs = [93, 203.5, 199, 203, 67];
+      const botKinds = ["wall", "opening", "wall", "opening", "wall"];
+      let tc = 0;
+      const top = topSegs.map((s, i) => {
+        const x1 = GALERIA.x + tc; tc += s;
+        return <Dim key={`gal-top-${i}`} x1={x1} y1={GALERIA.y} x2={x1 + s} y2={GALERIA.y} label={fmtCm(s)} sub={topKinds[i] === "opening" ? "drzwi" : null} side="above" extend={32} />;
+      });
+      let bc = 0;
+      const bot = botSegs.map((s, i) => {
+        const x1 = GALERIA.x + bc; bc += s;
+        return <Dim key={`gal-bot-${i}`} x1={x1} y1={GALERIA.y + GALERIA.h} x2={x1 + s} y2={GALERIA.y + GALERIA.h} label={fmtCm(s)} sub={botKinds[i] === "opening" ? "okno-drzwi" : null} side="below" extend={62} />;
+      });
+      return (
+        <g>
+          {top}
+          {bot}
+          <VDim x={GALERIA.x + GALERIA.w} y1={GALERIA.y} y2={GALERIA.y + GALERIA.h} label={`${fmtCm(GALERIA.h)} cm  ·  ${fmtM(GALERIA.h)}`} side="right" extend={56} />
+        </g>
+      );
+    })();
 
     return (
       <>
@@ -939,7 +1008,7 @@
             </div>
             <svg
               className="plan-svg"
-              viewBox={`${minX} ${minY} ${vbW} ${vbH}`}
+              viewBox={isMobile ? mobileVB : `${minX} ${minY} ${vbW} ${vbH}`}
               preserveAspectRatio="xMidYMid meet"
               role="img"
               aria-label="Interaktywny plan dwoch sal wystawowych"
@@ -952,150 +1021,50 @@
                   <path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(0,0,0,0.09)" strokeWidth="0.7" />
                 </pattern>
               </defs>
-              <rect x={minX} y={minY} width={vbW} height={vbH} fill="url(#grid)" />
-              <rect x={minX} y={minY} width={vbW} height={vbH} fill="url(#grid-major)" />
+              <rect x={-200} y={-100} width={2400} height={2000} fill="url(#grid)" />
+              <rect x={-200} y={-100} width={2400} height={2000} fill="url(#grid-major)" />
 
-              {/* Connecting passage between rooms */}
+              {/* Connecting passage (desktop only) */}
+              {!isMobile && (
+                <g>
+                  <rect
+                    x={SALA.x + SALA.w + 15}
+                    y={SALA.y + SALA.h - 200}
+                    width={GALERIA.x - (SALA.x + SALA.w) - 30}
+                    height={200}
+                    fill="rgba(255,255,255,0.35)"
+                    stroke="rgba(0,0,0,0.18)"
+                    strokeWidth={0.8}
+                    strokeDasharray="3 4"
+                  />
+                  <text
+                    x={(SALA.x + SALA.w + GALERIA.x) / 2}
+                    y={SALA.y + SALA.h - 215}
+                    textAnchor="middle"
+                    className="dim-text dim-text-sm"
+                  >przejscie · ~238,5 cm</text>
+                </g>
+              )}
+
+              {/* Sala zabaw group */}
               <g>
-                <rect
-                  x={SALA.x + SALA.w + 15}
-                  y={SALA.y + SALA.h - 200}
-                  width={GALERIA.x - (SALA.x + SALA.w) - 30}
-                  height={200}
-                  fill="rgba(255,255,255,0.35)"
-                  stroke="rgba(0,0,0,0.18)"
-                  strokeWidth={0.8}
-                  strokeDasharray="3 4"
-                />
-                <text
-                  x={(SALA.x + SALA.w + GALERIA.x) / 2}
-                  y={SALA.y + SALA.h - 215}
-                  textAnchor="middle"
-                  className="dim-text dim-text-sm"
-                >przejscie · ~238,5 cm</text>
+                <RoomWalls room={SALA} />
+                <RoomBadge room={SALA} />
+                {salaDims}
+                {SLOTS.filter(s => s.room === SALA.id).map(slot => (
+                  <Hotspot key={slot.id} slot={slot} upload={uploads[slot.id]} onClick={(s) => setActiveSlotId(s.id)} />
+                ))}
               </g>
 
-              {/* Rooms */}
-              <RoomWalls room={SALA} />
-              <RoomWalls room={GALERIA} />
-
-              {/* Room badges */}
-              <RoomBadge room={SALA} />
-              <RoomBadge room={GALERIA} />
-
-              {/* DIMENSIONS — Sala zabaw 1 */}
-              <Dim
-                x1={SALA.x} y1={SALA.y}
-                x2={SALA.x + SALA.w} y2={SALA.y}
-                label={`${fmtCm(SALA.w)} cm`}
-                sub={fmtM(SALA.w)}
-                side="above" extend={64}
-              />
-              {(() => {
-                const segs = [77.5, 234.5, 145.5, 206.5, 119];
-                const kinds = ["wall", "door", "wall", "door", "wall"];
-                let cursor = 0;
-                return segs.map((s, i) => {
-                  const x1 = SALA.x + cursor;
-                  const x2 = SALA.x + cursor + s;
-                  cursor += s;
-                  return (
-                    <Dim key={`sala-bot-${i}`}
-                      x1={x1} y1={SALA.y + SALA.h}
-                      x2={x2} y2={SALA.y + SALA.h}
-                      label={fmtCm(s)}
-                      sub={kinds[i] === "door" ? "drzwi" : null}
-                      side="below" extend={62}
-                    />
-                  );
-                });
-              })()}
-              {(() => {
-                const segs = [
-                  { len: 181,   kind: "wall"    },
-                  { len: 129.5, kind: "opening" },
-                  { len: 212,   kind: "wall"    },
-                  { len: 128.5, kind: "opening" },
-                  { len: 127.5, kind: "wall"    },
-                ];
-                let cursor = 0;
-                return segs.map((s, i) => {
-                  const x1 = SALA.x + cursor;
-                  const x2 = SALA.x + cursor + s.len;
-                  cursor += s.len;
-                  return (
-                    <Dim key={`sala-top-${i}`}
-                      x1={x1} y1={SALA.y}
-                      x2={x2} y2={SALA.y}
-                      label={fmtCm(s.len)}
-                      sub={s.kind === "opening" ? "przejscie" : null}
-                      side="above" extend={32}
-                    />
-                  );
-                });
-              })()}
-              <VDim
-                x={SALA.x}
-                y1={SALA.y} y2={SALA.y + SALA.h}
-                label={`${fmtCm(SALA.h)} cm  ·  ${fmtM(SALA.h)}`}
-                side="left" extend={56}
-              />
-
-              {/* DIMENSIONS — Galeria */}
-              {(() => {
-                const segs = [39, 111, 765.5 - 39 - 111];
-                const kinds = ["wall", "opening", "wall"];
-                let cursor = 0;
-                return segs.map((s, i) => {
-                  const x1 = GALERIA.x + cursor;
-                  const x2 = GALERIA.x + cursor + s;
-                  cursor += s;
-                  return (
-                    <Dim key={`gal-top-${i}`}
-                      x1={x1} y1={GALERIA.y}
-                      x2={x2} y2={GALERIA.y}
-                      label={fmtCm(s)}
-                      sub={kinds[i] === "opening" ? "drzwi" : null}
-                      side="above" extend={32}
-                    />
-                  );
-                });
-              })()}
-              {(() => {
-                const segs = [93, 203.5, 199, 203, 67];
-                const kinds = ["wall", "opening", "wall", "opening", "wall"];
-                let cursor = 0;
-                return segs.map((s, i) => {
-                  const x1 = GALERIA.x + cursor;
-                  const x2 = GALERIA.x + cursor + s;
-                  cursor += s;
-                  return (
-                    <Dim key={`gal-bot-${i}`}
-                      x1={x1} y1={GALERIA.y + GALERIA.h}
-                      x2={x2} y2={GALERIA.y + GALERIA.h}
-                      label={fmtCm(s)}
-                      sub={kinds[i] === "opening" ? "okno-drzwi" : null}
-                      side="below" extend={62}
-                    />
-                  );
-                });
-              })()}
-              <VDim
-                x={GALERIA.x + GALERIA.w}
-                y1={GALERIA.y} y2={GALERIA.y + GALERIA.h}
-                label={`${fmtCm(GALERIA.h)} cm  ·  ${fmtM(GALERIA.h)}`}
-                side="right" extend={56}
-              />
-
-              {/* HOTSPOTS */}
-              {SLOTS.map(slot => (
-                <Hotspot
-                  key={slot.id}
-                  slot={slot}
-                  upload={uploads[slot.id]}
-                  onClick={(s) => setActiveSlotId(s.id)}
-                />
-              ))}
+              {/* Galeria group — translated below Sala on mobile */}
+              <g transform={isMobile ? `translate(${galDx}, ${galDy})` : undefined}>
+                <RoomWalls room={GALERIA} />
+                <RoomBadge room={GALERIA} />
+                {galeriaDims}
+                {SLOTS.filter(s => s.room === GALERIA.id).map(slot => (
+                  <Hotspot key={slot.id} slot={slot} upload={uploads[slot.id]} onClick={(s) => setActiveSlotId(s.id)} />
+                ))}
+              </g>
             </svg>
           </section>
         </main>
