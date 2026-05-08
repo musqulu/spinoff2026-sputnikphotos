@@ -1,0 +1,1005 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Wystawa spinoff — plan interaktywny</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #f3eee4;
+    --paper-2: #ebe4d4;
+    --ink: #15171c;
+    --ink-2: #4a4d56;
+    --ink-3: #8a8e98;
+    --rule: #1a1c22;
+    --accent: #e63946;
+    --accent-deep: #b81d2a;
+    --accent-glow: rgba(230, 57, 70, 0.32);
+    --ok: #2a8055;
+    --warn: #b1741b;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "DM Sans", system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+    background-image:
+      radial-gradient(circle at 22% 18%, rgba(0,0,0,0.04), transparent 60%),
+      radial-gradient(circle at 80% 90%, rgba(0,0,0,0.05), transparent 55%);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-feature-settings: "tnum"; }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 22px 36px 18px;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand-mark {
+    width: 38px; height: 38px;
+    border: 1.5px solid var(--ink);
+    background: var(--paper-2);
+    position: relative;
+  }
+  .brand-mark::after {
+    content: ""; position: absolute; inset: 6px;
+    background: var(--accent); border-radius: 50%;
+  }
+  .brand-text .eyebrow {
+    font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--ink-3); font-weight: 600;
+  }
+  .brand-text h1 {
+    margin: 2px 0 0; font-size: 19px; font-weight: 600; letter-spacing: -0.01em;
+  }
+  .topbar-meta {
+    display: flex; gap: 28px; align-items: center;
+  }
+  .meta-pill {
+    display: flex; flex-direction: column; gap: 2px;
+    padding: 6px 14px;
+    border-left: 1px solid rgba(0,0,0,0.12);
+  }
+  .meta-pill .k { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+  .meta-pill .v { font-size: 14px; font-weight: 600; }
+
+  .stage {
+    padding: 28px 36px 40px;
+  }
+
+  .plan-frame {
+    background: var(--paper-2);
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset, 0 30px 80px -50px rgba(0,0,0,0.3);
+    padding: 18px;
+    position: relative;
+  }
+  .plan-svg { display: block; width: 100%; height: auto; }
+
+  .plan-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 4px 14px 14px;
+  }
+  .plan-header .ttl { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; }
+
+  /* SVG styling */
+  .wall { stroke: var(--rule); fill: none; stroke-linejoin: miter; stroke-linecap: square; }
+  .wall-thick { stroke-width: 14; }
+  .wall-fill { fill: var(--ink); }
+  .room-fill { fill: rgba(255,255,255,0.55); }
+  .door-arc { stroke: var(--ink-2); stroke-width: 1.2; fill: none; stroke-dasharray: 2 3; }
+  .door-leaf { stroke: var(--ink); stroke-width: 2; }
+  .dim-line { stroke: var(--ink-2); stroke-width: 0.9; }
+  .dim-tick { stroke: var(--ink-2); stroke-width: 0.9; }
+  .dim-text {
+    font-family: "JetBrains Mono", monospace; font-size: 14px; fill: var(--ink);
+    font-weight: 500;
+  }
+  .dim-text-sm { font-size: 11.5px; fill: var(--ink-2); }
+
+  .room-badge {
+    fill: var(--paper);
+    stroke: var(--ink); stroke-width: 1;
+  }
+  .badge-code { font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 600; fill: var(--ink); }
+  .badge-name { font-family: "DM Sans", sans-serif; font-size: 14px; font-weight: 600; fill: var(--ink); }
+  .badge-area { font-family: "JetBrains Mono", monospace; font-size: 13px; fill: var(--accent-deep); font-weight: 600; }
+  .badge-h { font-family: "JetBrains Mono", monospace; font-size: 11px; fill: var(--ink-2); }
+
+  .compass-text { font-family: "JetBrains Mono", monospace; font-size: 11px; fill: var(--ink-3); font-weight: 600; letter-spacing: 0.15em; }
+
+  /* Hotspot dots */
+  .hotspot { cursor: pointer; }
+  .hotspot .pulse {
+    fill: var(--accent);
+    opacity: 0.35;
+    transform-origin: center;
+    transform-box: fill-box;
+    animation: pulse 2.1s ease-out infinite;
+  }
+  .hotspot .pulse-2 {
+    animation-delay: 0.7s;
+  }
+  .hotspot .core {
+    fill: var(--accent);
+    stroke: white;
+    stroke-width: 2;
+    transition: r 140ms ease, transform 140ms ease;
+    transform-origin: center;
+    transform-box: fill-box;
+  }
+  .hotspot:hover .core { transform: scale(1.18); }
+  .hotspot .label {
+    font-family: "DM Sans", sans-serif; font-size: 11px; font-weight: 600;
+    fill: var(--ink);
+    text-anchor: middle;
+    pointer-events: none;
+  }
+  .hotspot .label-bg {
+    fill: var(--paper);
+    stroke: var(--ink); stroke-width: 0.8;
+  }
+  .hotspot.video .core { fill: var(--ink); }
+  .hotspot.video .pulse { fill: var(--ink); opacity: 0.22; }
+  .hotspot.video .ring {
+    fill: none; stroke: var(--accent); stroke-width: 2;
+  }
+  .hotspot.filled .pulse { display: none; }
+  .hotspot .thumb-ring {
+    fill: var(--paper);
+    stroke: var(--accent);
+    stroke-width: 2.5;
+  }
+  .hotspot.video.filled .thumb-ring { stroke: var(--ink); }
+  .hotspot .thumb-img {
+    pointer-events: none;
+  }
+  .hotspot .play-tri { fill: white; pointer-events: none; }
+
+  @keyframes pulse {
+    0%   { transform: scale(0.6); opacity: 0.55; }
+    70%  { transform: scale(2.4); opacity: 0;    }
+    100% { transform: scale(2.4); opacity: 0;    }
+  }
+
+  /* Lightbox */
+  .lightbox-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(15, 16, 20, 0.94);
+    display: flex; align-items: stretch; justify-content: stretch;
+    z-index: 100; padding: 0;
+    animation: fade 160ms ease;
+  }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  .lightbox-card {
+    background: var(--paper);
+    width: 100%; height: 100%;
+    max-width: none; max-height: none;
+    display: flex; flex-direction: column;
+    border: none;
+  }
+  .lightbox-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; border-bottom: 1px solid rgba(0,0,0,0.1);
+    flex: none;
+  }
+  .lightbox-head .ttl { font-size: 13px; font-weight: 600; }
+  .lightbox-head .sub { font-size: 11px; color: var(--ink-3); font-family: "JetBrains Mono", monospace; }
+  .lightbox-body {
+    flex: 1 1 auto; min-height: 0;
+    background: #0c0c0e;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0;
+    overflow: hidden;
+  }
+  .lightbox-body img, .lightbox-body video {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto; height: auto;
+    object-fit: contain;
+    background: #000;
+  }
+  .lightbox-actions {
+    display: flex; gap: 8px;
+  }
+  .lb-btn {
+    appearance: none; border: 1px solid var(--ink); background: transparent;
+    padding: 6px 12px; font: inherit; font-size: 12px; font-weight: 500;
+    cursor: pointer;
+  }
+  .lb-btn.danger { color: var(--accent-deep); border-color: var(--accent); }
+  .lb-btn.primary { background: var(--ink); color: var(--paper); }
+  .lb-btn:hover { background: rgba(0,0,0,0.05); }
+  .lb-btn.primary:hover { background: var(--accent-deep); border-color: var(--accent-deep); }
+  .lb-btn.danger:hover { background: var(--accent); color: white; }
+
+  .empty-state {
+    color: var(--ink-3);
+    font-size: 14px;
+    text-align: center;
+    padding: 60px 30px;
+  }
+  .empty-state .icon {
+    width: 48px; height: 48px; margin: 0 auto 12px;
+    border: 1.5px dashed var(--ink-3); display: grid; place-items: center;
+    border-radius: 50%; color: var(--ink-3); font-size: 24px;
+  }
+  .empty-state .ul { font-size: 12px; line-height: 1.7; margin-top: 14px; }
+
+  .file-input { display: none; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: var(--paper);
+    padding: 10px 18px; font-size: 13px;
+    z-index: 200;
+    animation: rise 200ms ease;
+    border-left: 3px solid var(--accent);
+  }
+  @keyframes rise { from { transform: translate(-50%, 12px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+</style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+
+  <script type="text/babel" data-presets="env,react">
+  /* ============================================================
+     Wystawa spinoff — interaktywny plan
+     Skala: 1 cm = 1 unit w viewBox (proporcje 1:1)
+     ============================================================ */
+
+  const { useState, useEffect, useMemo, useRef, useCallback } = React;
+
+  // ----- Room geometry (cm) -----
+  const SALA = {
+    id: "sala",
+    code: "0.02",
+    name: "Sala zabaw 1",
+    area: 42.02,
+    hpom: 329,
+    x: 30, y: 200, w: 783, h: 548,
+    doors: [
+      { wall: "N", offset: 181,                 width: 129.5, type: "opening" },
+      { wall: "N", offset: 181 + 129.5 + 212,   width: 128.5, type: "opening" },
+      { wall: "S", offset: 77.5,                       width: 234.5, type: "opening" },
+      { wall: "S", offset: 77.5 + 234.5 + 145.5,       width: 206.5, type: "opening" },
+    ],
+  };
+  const GALERIA = {
+    id: "galeria",
+    code: "0.01",
+    name: "Galeria",
+    area: 43.24,
+    hpom: 310,
+    x: 1080, y: 748 - 558.5, w: 765.5, h: 558.5,
+    doors: [
+      { wall: "S", offset: 93,                width: 203.5, type: "opening" },
+      { wall: "S", offset: 93 + 203.5 + 199,  width: 203,   type: "opening" },
+      { wall: "N", offset: 39,                width: 111, type: "opening" },
+    ],
+  };
+
+  // Slot definitions (10 total: 4 walls + 1 video per room)
+  const buildSlots = (room) => {
+    const cx = room.x + room.w / 2;
+    const cy = room.y + room.h / 2;
+    return [
+      { id: `${room.id}-N`, kind: "image", room: room.id,
+        label: "Sciana polnocna",
+        x: cx, y: room.y,
+        labelOffset: { dx: 0, dy: -34 } },
+      { id: `${room.id}-E`, kind: "image", room: room.id,
+        label: "Sciana wschodnia",
+        x: room.x + room.w, y: cy,
+        labelOffset: { dx: 80, dy: 0 } },
+      { id: `${room.id}-S`, kind: "image", room: room.id,
+        label: "Sciana poludniowa",
+        x: cx, y: room.y + room.h,
+        labelOffset: { dx: 0, dy: 34 } },
+      { id: `${room.id}-W`, kind: "image", room: room.id,
+        label: "Sciana zachodnia",
+        x: room.x, y: cy,
+        labelOffset: { dx: -80, dy: 0 } },
+      { id: `${room.id}-V`, kind: "video", room: room.id,
+        label: "Wideo srodkowe",
+        x: cx, y: cy,
+        labelOffset: { dx: 0, dy: 56 } },
+    ];
+  };
+
+  const SLOTS = [...buildSlots(SALA), ...buildSlots(GALERIA)];
+  const ROOMS = [SALA, GALERIA];
+
+  // ----- Persistence helpers -----
+  const STORAGE_KEY = "wystawa-spinoff-uploads-v2";
+
+  const DEFAULT_UPLOADS = {
+    "sala-N": {
+      dataUrl: "images/sala-N.jpg",
+      type: "image",
+      name: "sala-N.jpg",
+      isDefault: true,
+      updatedAt: 0,
+    },
+    "sala-S": {
+      dataUrl: "images/sala-S.jpg",
+      type: "image",
+      name: "sala-S.jpg",
+      isDefault: true,
+      updatedAt: 0,
+    },
+    "galeria-S": {
+      dataUrl: "images/galeria-S.jpg",
+      type: "image",
+      name: "galeria-S.jpg",
+      isDefault: true,
+      updatedAt: 0,
+    },
+  };
+
+  const loadUploads = () => {
+    let stored = {};
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      stored = raw ? JSON.parse(raw) : {};
+    } catch { stored = {}; }
+    return { ...DEFAULT_UPLOADS, ...stored };
+  };
+
+  const saveUploads = (data) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      return true;
+    } catch (e) {
+      console.warn("LocalStorage quota exceeded", e);
+      return false;
+    }
+  };
+
+  // ----- Helpers -----
+  const fmtCm = (v) => {
+    if (Number.isInteger(v)) return `${v}`;
+    return v.toFixed(1).replace(".", ",");
+  };
+  const fmtM = (cm) => (cm / 100).toFixed(2).replace(".", ",") + " m";
+
+  // ============================================================
+  // SVG sub-components
+  // ============================================================
+
+  function RoomWalls({ room }) {
+    const { x, y, w, h, doors } = room;
+    const wallsSpec = [
+      { name: "N", from: [x, y],         to: [x+w, y]       },
+      { name: "E", from: [x+w, y],       to: [x+w, y+h]     },
+      { name: "S", from: [x+w, y+h],     to: [x, y+h]       },
+      { name: "W", from: [x, y+h],       to: [x, y]         },
+    ];
+    const segments = [];
+    wallsSpec.forEach(({name, from, to}) => {
+      const wallDoors = doors.filter(d => d.wall === name).map(d => ({...d}));
+      if (wallDoors.length === 0) {
+        segments.push({ from, to });
+        return;
+      }
+      const horiz = from[1] === to[1];
+      const dir = horiz ? Math.sign(to[0] - from[0]) : Math.sign(to[1] - from[1]);
+      const length = horiz ? Math.abs(to[0] - from[0]) : Math.abs(to[1] - from[1]);
+      const cuts = [];
+      wallDoors.forEach(d => {
+        let startU;
+        if (name === "N") startU = d.offset;
+        else if (name === "S") startU = length - d.offset - d.width;
+        else if (name === "W") startU = length - d.offset - d.width;
+        else if (name === "E") startU = d.offset;
+        cuts.push({ u0: startU, u1: startU + d.width, door: d, wallName: name });
+      });
+      cuts.sort((a, b) => a.u0 - b.u0);
+      let cursor = 0;
+      const uToPt = (u) => {
+        if (horiz) return [from[0] + dir * u, from[1]];
+        return [from[0], from[1] + dir * u];
+      };
+      cuts.forEach(c => {
+        if (c.u0 > cursor) {
+          segments.push({ from: uToPt(cursor), to: uToPt(c.u0) });
+        }
+        cursor = c.u1;
+      });
+      if (cursor < length) {
+        segments.push({ from: uToPt(cursor), to: uToPt(length) });
+      }
+    });
+
+    const doorArcs = doors.map((d, i) => {
+      const len = d.width;
+      if (d.wall === "S") {
+        const startX = x + d.offset;
+        const startY = y + h;
+        if (d.type === "opening") {
+          return (
+            <g key={`door-${room.id}-${i}`}>
+              <line x1={startX} y1={startY} x2={startX} y2={startY - 18} className="wall" strokeWidth={3} />
+              <line x1={startX + len} y1={startY} x2={startX + len} y2={startY - 18} className="wall" strokeWidth={3} />
+            </g>
+          );
+        }
+        return (
+          <g key={`door-${room.id}-${i}`}>
+            <path d={`M ${startX} ${startY} L ${startX + len} ${startY}`} className="door-leaf" />
+            <path d={`M ${startX + len} ${startY} A ${len} ${len} 0 0 0 ${startX} ${startY - len}`} className="door-arc" />
+          </g>
+        );
+      } else if (d.wall === "N") {
+        const startX = x + d.offset;
+        const startY = y;
+        if (d.type === "opening") {
+          return (
+            <g key={`door-${room.id}-${i}`}>
+              <line x1={startX} y1={startY} x2={startX} y2={startY + 18} className="wall" strokeWidth={3} />
+              <line x1={startX + len} y1={startY} x2={startX + len} y2={startY + 18} className="wall" strokeWidth={3} />
+            </g>
+          );
+        }
+        return (
+          <g key={`door-${room.id}-${i}`}>
+            <path d={`M ${startX} ${startY} L ${startX + len} ${startY}`} className="door-leaf" />
+            <path d={`M ${startX} ${startY} A ${len} ${len} 0 0 0 ${startX + len} ${startY + len}`} className="door-arc" />
+          </g>
+        );
+      }
+      return null;
+    }).filter(Boolean);
+
+    return (
+      <g>
+        <rect x={x} y={y} width={w} height={h} className="room-fill" />
+        {segments.map((s, i) => (
+          <line key={i} x1={s.from[0]} y1={s.from[1]} x2={s.to[0]} y2={s.to[1]}
+                className="wall wall-thick" />
+        ))}
+        {doorArcs}
+      </g>
+    );
+  }
+
+  function Dim({ x1, y1, x2, y2, label, side = "above", extend = 22, sub }) {
+    const horiz = y1 === y2;
+    let lx1, ly1, lx2, ly2;
+    let labelX, labelY, labelRotate = 0;
+    if (horiz) {
+      const offset = side === "above" ? -extend : extend;
+      ly1 = y1 + offset; ly2 = y2 + offset;
+      lx1 = x1; lx2 = x2;
+      labelX = (x1 + x2) / 2;
+      labelY = ly1 + (side === "above" ? -7 : 14);
+    } else {
+      const offset = side === "left" ? -extend : extend;
+      lx1 = x1 + offset; lx2 = x2 + offset;
+      ly1 = y1; ly2 = y2;
+      labelX = lx1 + (side === "left" ? -7 : 7);
+      labelY = (y1 + y2) / 2;
+      labelRotate = -90;
+    }
+    const tickSize = 6;
+    return (
+      <g>
+        <line x1={x1} y1={y1} x2={lx1} y2={ly1} className="dim-line" />
+        <line x1={x2} y1={y2} x2={lx2} y2={ly2} className="dim-line" />
+        <line x1={lx1} y1={ly1} x2={lx2} y2={ly2} className="dim-line" />
+        {horiz ? (
+          <>
+            <line x1={lx1} y1={ly1 - tickSize} x2={lx1} y2={ly1 + tickSize} className="dim-tick" />
+            <line x1={lx2} y1={ly2 - tickSize} x2={lx2} y2={ly2 + tickSize} className="dim-tick" />
+          </>
+        ) : (
+          <>
+            <line x1={lx1 - tickSize} y1={ly1} x2={lx1 + tickSize} y2={ly1} className="dim-tick" />
+            <line x1={lx2 - tickSize} y1={ly2} x2={lx2 + tickSize} y2={ly2} className="dim-tick" />
+          </>
+        )}
+        <g transform={horiz ? "" : `rotate(${labelRotate} ${labelX} ${labelY})`}>
+          <rect
+            x={labelX - (label.length * 4 + 8)}
+            y={labelY - 9}
+            width={label.length * 8 + 16}
+            height={18}
+            className="room-fill"
+            fill="var(--paper-2)"
+          />
+          <text x={labelX} y={labelY + 4} className="dim-text" textAnchor="middle">
+            {label}
+          </text>
+        </g>
+        {sub && (
+          <text
+            x={labelX} y={labelY + (horiz ? (side === "above" ? -22 : 28) : 0)}
+            className="dim-text dim-text-sm"
+            textAnchor="middle"
+          >{sub}</text>
+        )}
+      </g>
+    );
+  }
+
+  function VDim({ x, y1, y2, label, side = "left", extend = 26 }) {
+    const lx = x + (side === "left" ? -extend : extend);
+    const tickSize = 6;
+    const labelX = lx + (side === "left" ? -8 : 8);
+    const labelY = (y1 + y2) / 2;
+    return (
+      <g>
+        <line x1={x} y1={y1} x2={lx} y2={y1} className="dim-line" />
+        <line x1={x} y1={y2} x2={lx} y2={y2} className="dim-line" />
+        <line x1={lx} y1={y1} x2={lx} y2={y2} className="dim-line" />
+        <line x1={lx - tickSize} y1={y1} x2={lx + tickSize} y2={y1} className="dim-tick" />
+        <line x1={lx - tickSize} y1={y2} x2={lx + tickSize} y2={y2} className="dim-tick" />
+        <g transform={`rotate(-90 ${labelX} ${labelY})`}>
+          <rect
+            x={labelX - (label.length * 4 + 8)}
+            y={labelY - 9}
+            width={label.length * 8 + 16}
+            height={18}
+            fill="var(--paper-2)"
+          />
+          <text x={labelX} y={labelY + 4} className="dim-text" textAnchor="middle">
+            {label}
+          </text>
+        </g>
+      </g>
+    );
+  }
+
+  function RoomBadge({ room }) {
+    const cx = room.x + room.w / 2;
+    const cy = room.y + room.h / 2;
+    const bx = cx - 145, by = cy - 110;
+    return (
+      <g pointerEvents="none">
+        <rect x={bx} y={by} width={290} height={62} className="room-badge" />
+        <text x={bx + 16} y={by + 22} className="badge-code">{room.code}</text>
+        <text x={bx + 70} y={by + 22} className="badge-name">{room.name}</text>
+        <text x={bx + 16} y={by + 44} className="badge-area">{room.area.toFixed(2).replace(".", ",")} m²</text>
+        <text x={bx + 100} y={by + 44} className="badge-h">Hpom = {room.hpom} cm</text>
+      </g>
+    );
+  }
+
+  function Hotspot({ slot, upload, onClick }) {
+    const filled = !!upload;
+    const isVideo = slot.kind === "video";
+    const r = isVideo ? 18 : 13;
+    const labelDx = slot.labelOffset.dx, labelDy = slot.labelOffset.dy;
+    const thumbR = isVideo ? 30 : 24;
+
+    const titleParts = [];
+    if (isVideo) titleParts.push("Wideo");
+    else titleParts.push("Zdjecie");
+    titleParts.push("•", slot.label);
+
+    return (
+      <g
+        className={`hotspot ${isVideo ? "video" : ""} ${filled ? "filled" : ""}`}
+        onClick={() => onClick(slot)}
+        transform={`translate(${slot.x}, ${slot.y})`}
+        role="button"
+        tabIndex={0}
+      >
+        <title>{`${titleParts.join(" ")} — ${filled ? "kliknij, aby zobaczyc" : "kliknij, aby wgrac"}`}</title>
+        {!filled && (
+          <>
+            <circle cx={0} cy={0} r={r} className="pulse" />
+            <circle cx={0} cy={0} r={r} className="pulse pulse-2" />
+          </>
+        )}
+
+        {filled ? (
+          <g>
+            <defs>
+              <clipPath id={`clip-${slot.id}`}>
+                <circle cx={0} cy={0} r={thumbR - 2} />
+              </clipPath>
+            </defs>
+            <circle cx={0} cy={0} r={thumbR} className="thumb-ring" />
+            {upload.type === "video" ? (
+              <>
+                <circle cx={0} cy={0} r={thumbR - 3} fill="#1a1a1a" />
+                <polygon points={`-7,-9 -7,9 9,0`} className="play-tri" />
+              </>
+            ) : (
+              <image
+                href={upload.dataUrl}
+                x={-(thumbR - 2)} y={-(thumbR - 2)}
+                width={(thumbR - 2) * 2} height={(thumbR - 2) * 2}
+                preserveAspectRatio="xMidYMid slice"
+                clipPath={`url(#clip-${slot.id})`}
+                className="thumb-img"
+              />
+            )}
+          </g>
+        ) : (
+          <>
+            {isVideo && <circle cx={0} cy={0} r={r + 6} className="ring" />}
+            <circle cx={0} cy={0} r={r} className="core" />
+            {isVideo && <polygon points={`-5,-7 -5,7 7,0`} fill="white" />}
+            {!isVideo && (
+              <text x={0} y={4} textAnchor="middle"
+                    fontSize="14" fontWeight="700" fill="white">+</text>
+            )}
+          </>
+        )}
+
+        <circle
+          cx={0} cy={0}
+          r={Math.max(r, thumbR) + 6}
+          fill="transparent"
+          style={{ cursor: "pointer" }}
+          pointerEvents="all"
+        />
+
+        {isVideo && (
+          <g transform={`translate(${labelDx}, ${labelDy})`} pointerEvents="none">
+            <rect x={-58} y={-11} width={116} height={20} className="label-bg" rx={2} />
+            <text x={0} y={3} className="label">Wideo sali</text>
+          </g>
+        )}
+      </g>
+    );
+  }
+
+  // ============================================================
+  // Lightbox
+  // ============================================================
+
+  function Lightbox({ slot, upload, onClose, onUpload, onClear }) {
+    const fileRef = useRef(null);
+    if (!slot) return null;
+    const room = ROOMS.find(r => r.id === slot.room);
+    const isVideo = slot.kind === "video";
+    const isImage = slot.kind === "image";
+    const acceptType = isVideo ? "video/*" : "image/*";
+
+    const handleFile = (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (!f) return;
+      onUpload(slot, f);
+    };
+
+    return (
+      <div className="lightbox-backdrop" onClick={onClose}>
+        <div className="lightbox-card" onClick={(e) => e.stopPropagation()}>
+          <div className="lightbox-head">
+            <div>
+              <div className="ttl">{room.name} — {slot.label}</div>
+              <div className="sub">
+                {slot.id.toUpperCase()} · {isVideo ? "wideo srodkowe" : "zdjecie sciany"}
+                {upload ? ` · ${upload.name}` : ""}
+              </div>
+            </div>
+            <div className="lightbox-actions">
+              {isVideo && upload && (
+                <button className="lb-btn danger" onClick={() => onClear(slot)}>
+                  Usun
+                </button>
+              )}
+              {isVideo && (
+                <button className="lb-btn primary" onClick={() => fileRef.current && fileRef.current.click()}>
+                  {upload ? "Zmien plik" : "Wgraj wideo"}
+                </button>
+              )}
+              <button className="lb-btn" onClick={onClose}>Zamknij</button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept={acceptType}
+                className="file-input"
+                onChange={handleFile}
+              />
+            </div>
+          </div>
+          <div className="lightbox-body">
+            {upload ? (
+              upload.type === "video" ? (
+                <video src={upload.dataUrl} controls autoPlay style={{ maxHeight: "100%", maxWidth: "100%" }} />
+              ) : (
+                <img src={upload.dataUrl} alt={slot.label} />
+              )
+            ) : (
+              <div className="empty-state">
+                <div className="icon">{isVideo ? "\u25B6" : "+"}</div>
+                <div>Brak {isVideo ? "wideo" : "zdjecia"} dla tego slotu</div>
+                <div className="ul">
+                  Kliknij <strong>{isVideo ? "Wgraj wideo" : "Wgraj zdjecie"}</strong>, zeby
+                  dodac plik z dysku.<br />
+                  {isVideo ? "Wideo zostanie odtworzone w tym oknie." : "Zdjecie pojawi sie jako miniatura na planie."}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================================
+  // Main app
+  // ============================================================
+
+  function App() {
+    const [uploads, setUploads] = useState(loadUploads);
+    const [activeSlotId, setActiveSlotId] = useState(null);
+    const [toast, setToast] = useState(null);
+
+    const activeSlot = activeSlotId ? SLOTS.find(s => s.id === activeSlotId) : null;
+
+    const showToast = (msg) => {
+      setToast(msg);
+      setTimeout(() => setToast(null), 2500);
+    };
+
+    const handleUpload = (slot, file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const next = {
+          ...uploads,
+          [slot.id]: {
+            dataUrl: e.target.result,
+            type: slot.kind,
+            name: file.name,
+            size: file.size,
+            updatedAt: Date.now(),
+            isDefault: false,
+          },
+        };
+        setUploads(next);
+        const userOnly = {};
+        Object.entries(next).forEach(([k, v]) => { if (!v.isDefault) userOnly[k] = v; });
+        const ok = saveUploads(userOnly);
+        if (!ok) showToast("Plik wgrany (zbyt duzy aby zapisac go na stale)");
+        else showToast(`Wgrano: ${file.name}`);
+      };
+      reader.readAsDataURL(file);
+    };
+
+    const handleClear = (slot) => {
+      const next = { ...uploads };
+      delete next[slot.id];
+      if (DEFAULT_UPLOADS[slot.id]) next[slot.id] = DEFAULT_UPLOADS[slot.id];
+      setUploads(next);
+      const userOnly = {};
+      Object.entries(next).forEach(([k, v]) => { if (!v.isDefault) userOnly[k] = v; });
+      saveUploads(userOnly);
+      showToast(DEFAULT_UPLOADS[slot.id] ? "Przywrocono domyslne" : "Usunieto");
+    };
+
+    const filledCount = Object.keys(uploads).length;
+    const totalCount = SLOTS.length;
+
+    // SVG viewBox
+    const padX = 110;
+    const padY = 130;
+    const minX = Math.min(SALA.x, GALERIA.x) - padX;
+    const minY = Math.min(SALA.y, GALERIA.y) - padY;
+    const maxX = Math.max(SALA.x + SALA.w, GALERIA.x + GALERIA.w) + padX;
+    const maxY = Math.max(SALA.y + SALA.h, GALERIA.y + GALERIA.h) + padY;
+    const vbW = maxX - minX;
+    const vbH = maxY - minY;
+
+    return (
+      <>
+        <header className="topbar">
+          <div className="brand">
+            <div className="brand-mark"></div>
+            <div className="brand-text">
+              <div className="eyebrow">Wystawa · spinoff</div>
+              <h1>Plan interaktywny — sale 0.01 &amp; 0.02</h1>
+            </div>
+          </div>
+          <div className="topbar-meta">
+            <div className="meta-pill">
+              <span className="k">Sale</span>
+              <span className="v mono">0.01 · 0.02</span>
+            </div>
+          </div>
+        </header>
+
+        <main className="stage">
+          <section className="plan-frame" data-screen-label="Plan">
+            <div className="plan-header">
+              <div className="ttl">Rzut · skala proporcjonalna · wymiary w cm</div>
+            </div>
+            <svg
+              className="plan-svg"
+              viewBox={`${minX} ${minY} ${vbW} ${vbH}`}
+              preserveAspectRatio="xMidYMid meet"
+              role="img"
+              aria-label="Interaktywny plan dwoch sal wystawowych"
+            >
+              <defs>
+                <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+                  <path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(0,0,0,0.05)" strokeWidth="0.5" />
+                </pattern>
+                <pattern id="grid-major" width="100" height="100" patternUnits="userSpaceOnUse">
+                  <path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(0,0,0,0.09)" strokeWidth="0.7" />
+                </pattern>
+              </defs>
+              <rect x={minX} y={minY} width={vbW} height={vbH} fill="url(#grid)" />
+              <rect x={minX} y={minY} width={vbW} height={vbH} fill="url(#grid-major)" />
+
+              {/* Connecting passage between rooms */}
+              <g>
+                <rect
+                  x={SALA.x + SALA.w + 15}
+                  y={SALA.y + SALA.h - 200}
+                  width={GALERIA.x - (SALA.x + SALA.w) - 30}
+                  height={200}
+                  fill="rgba(255,255,255,0.35)"
+                  stroke="rgba(0,0,0,0.18)"
+                  strokeWidth={0.8}
+                  strokeDasharray="3 4"
+                />
+                <text
+                  x={(SALA.x + SALA.w + GALERIA.x) / 2}
+                  y={SALA.y + SALA.h - 215}
+                  textAnchor="middle"
+                  className="dim-text dim-text-sm"
+                >przejscie · ~238,5 cm</text>
+              </g>
+
+              {/* Rooms */}
+              <RoomWalls room={SALA} />
+              <RoomWalls room={GALERIA} />
+
+              {/* Room badges */}
+              <RoomBadge room={SALA} />
+              <RoomBadge room={GALERIA} />
+
+              {/* DIMENSIONS — Sala zabaw 1 */}
+              <Dim
+                x1={SALA.x} y1={SALA.y}
+                x2={SALA.x + SALA.w} y2={SALA.y}
+                label={`${fmtCm(SALA.w)} cm`}
+                sub={fmtM(SALA.w)}
+                side="above" extend={64}
+              />
+              {(() => {
+                const segs = [77.5, 234.5, 145.5, 206.5, 119];
+                const kinds = ["wall", "door", "wall", "door", "wall"];
+                let cursor = 0;
+                return segs.map((s, i) => {
+                  const x1 = SALA.x + cursor;
+                  const x2 = SALA.x + cursor + s;
+                  cursor += s;
+                  return (
+                    <Dim key={`sala-bot-${i}`}
+                      x1={x1} y1={SALA.y + SALA.h}
+                      x2={x2} y2={SALA.y + SALA.h}
+                      label={fmtCm(s)}
+                      sub={kinds[i] === "door" ? "drzwi" : null}
+                      side="below" extend={62}
+                    />
+                  );
+                });
+              })()}
+              {(() => {
+                const segs = [
+                  { len: 181,   kind: "wall"    },
+                  { len: 129.5, kind: "opening" },
+                  { len: 212,   kind: "wall"    },
+                  { len: 128.5, kind: "opening" },
+                  { len: 127.5, kind: "wall"    },
+                ];
+                let cursor = 0;
+                return segs.map((s, i) => {
+                  const x1 = SALA.x + cursor;
+                  const x2 = SALA.x + cursor + s.len;
+                  cursor += s.len;
+                  return (
+                    <Dim key={`sala-top-${i}`}
+                      x1={x1} y1={SALA.y}
+                      x2={x2} y2={SALA.y}
+                      label={fmtCm(s.len)}
+                      sub={s.kind === "opening" ? "przejscie" : null}
+                      side="above" extend={32}
+                    />
+                  );
+                });
+              })()}
+              <VDim
+                x={SALA.x}
+                y1={SALA.y} y2={SALA.y + SALA.h}
+                label={`${fmtCm(SALA.h)} cm  ·  ${fmtM(SALA.h)}`}
+                side="left" extend={56}
+              />
+
+              {/* DIMENSIONS — Galeria */}
+              {(() => {
+                const segs = [39, 111, 765.5 - 39 - 111];
+                const kinds = ["wall", "opening", "wall"];
+                let cursor = 0;
+                return segs.map((s, i) => {
+                  const x1 = GALERIA.x + cursor;
+                  const x2 = GALERIA.x + cursor + s;
+                  cursor += s;
+                  return (
+                    <Dim key={`gal-top-${i}`}
+                      x1={x1} y1={GALERIA.y}
+                      x2={x2} y2={GALERIA.y}
+                      label={fmtCm(s)}
+                      sub={kinds[i] === "opening" ? "drzwi" : null}
+                      side="above" extend={32}
+                    />
+                  );
+                });
+              })()}
+              {(() => {
+                const segs = [93, 203.5, 199, 203, 67];
+                const kinds = ["wall", "opening", "wall", "opening", "wall"];
+                let cursor = 0;
+                return segs.map((s, i) => {
+                  const x1 = GALERIA.x + cursor;
+                  const x2 = GALERIA.x + cursor + s;
+                  cursor += s;
+                  return (
+                    <Dim key={`gal-bot-${i}`}
+                      x1={x1} y1={GALERIA.y + GALERIA.h}
+                      x2={x2} y2={GALERIA.y + GALERIA.h}
+                      label={fmtCm(s)}
+                      sub={kinds[i] === "opening" ? "okno-drzwi" : null}
+                      side="below" extend={62}
+                    />
+                  );
+                });
+              })()}
+              <VDim
+                x={GALERIA.x + GALERIA.w}
+                y1={GALERIA.y} y2={GALERIA.y + GALERIA.h}
+                label={`${fmtCm(GALERIA.h)} cm  ·  ${fmtM(GALERIA.h)}`}
+                side="right" extend={56}
+              />
+
+              {/* HOTSPOTS */}
+              {SLOTS.map(slot => (
+                <Hotspot
+                  key={slot.id}
+                  slot={slot}
+                  upload={uploads[slot.id]}
+                  onClick={(s) => setActiveSlotId(s.id)}
+                />
+              ))}
+            </svg>
+          </section>
+        </main>
+
+        {activeSlot && (
+          <Lightbox
+            slot={activeSlot}
+            upload={uploads[activeSlot.id]}
+            onClose={() => setActiveSlotId(null)}
+            onUpload={handleUpload}
+            onClear={handleClear}
+          />
+        )}
+        {toast && <div className="toast">{toast}</div>}
+      </>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
